@@ -1,8 +1,3 @@
-// TO-DO LIST
-// Add modulation textbox inputs in their own panel (HTML) [-]
-// Add basic code for modulation from http://tinyurl.com/hpgvg77 (JS) []
-// Add way of sequencing sounds (JS) and make input field for code (HTML) []
-
 function osc(freq, type){
   oscs.push(context.createOscillator()); // Create oscilllator
   var i = oscs.length - 1; // Get oscillator's item number in array
@@ -10,8 +5,7 @@ function osc(freq, type){
   oscs[i].type = type; // Set oscillator's waveform
   oscs[i].frequency.value = freq; // Set oscillator's frequency
 
-  oscs[i].connect(filts[hpf]);
-
+  flow(i); // Set signal path for oscillator
   oscs[i].start(); // Start oscillator
 }
 
@@ -50,12 +44,46 @@ function stop(){
     oscs = []; // Delete all oscillators in array
 }
 
+function flow(i){
+  var path = document.getElementById('filters').value; // Get value of filter select
+
+  if (path == 'none'){
+    oscs[i].connect(volume); // Connect oscillator to volume (out)
+  } else if (path == 'hpf'){
+    oscs[i].connect(filts[0]); // Connect oscillator to HPF (out)
+    filts[0].connect(volume); // Connect HPF to volume (out)
+  } else if (path == 'lpf'){
+    oscs[i].connect(filts[1]); // Connect oscillator to LPF (out)
+    filts[1].connect(volume); // Connect LPF to volume (out)
+  } else if (path == 'both'){
+    oscs[i].connect(filts[0]); // Connect oscillator to HPF (out)
+    filts[0].connect(filts[1]); // Connect HPF to LPF (out)
+    filts[1].connect(volume); // Connect LPF to volume (out)
+  }
+
+  volume.connect(context.destination); // Connect volume control to audio out (out)
+}
+
 function createFilter(type, cutoff){
   var filter = context.createBiquadFilter(); // Create biquad filter
   filter.type = type; // Set filter type
   filter.frequency.value = cutoff; // Set cutoff frequency
-  filts.push(filter);
-  return filts.length;
+  filts.push(filter); // Push filter to array
+  return filts.length - 1; // Return filter position
+}
+
+function createLFO(type, amp){
+  var lfo = context.createOscillator(); // Create low frequency oscillator
+  var lfoAmp = context.createGain(); // Create gain node for amplitude control
+  lfo.type = type; // Set LFO type
+  lfoAmp.gain.value = amp; // Set LFO amplitude
+  lfo.connect(lfoAmp); // Connect LFO amplitude to LFO
+  var toPush = {
+    lfo: lfo,
+    amp: lfoAmp
+  }; // Create object with LFO and amplitude
+  lfos.push(toPush); // Push object to array
+  return lfos.length - 1; // Return LFO position
 }
 
 var oscs = []; // Create oscillator array
@@ -65,13 +93,7 @@ var lfos = []; // Create LFO array
 var context = new AudioContext(); // Create audio context
 
 var volume = context.createGain(); // Create gain node for volume control
-volume.connect(context.destination); // Connect gain node to audio output
-volume.gain.value = 0.5; // Set volume to 0.2;
+volume.gain.value = 0.5; // Set volume to 0.5;
 
 var hpf = createFilter('highpass', 660); // Create highpass filter
-hpf = hpf - 1; // Get actual array item #
-filts[hpf].connect(volume); // Connect HPF to volume control (out)
-
 var lpf = createFilter('lowpass', 440); // Create lowpass filter
-lpf = lpf - 1; // Get actual array item #
-filts[lpf].connect(filts[hpf]); // Connect LPF to HPF (out)

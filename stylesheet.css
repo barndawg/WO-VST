@@ -20,6 +20,12 @@ h2 {
   margin-bottom: 0px;
 }
 
+h3 {
+  font-family: 'Rubik', sans-serif;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
 .box {
   text-align: center;
   border: 5px solid #FFFFFF;
@@ -32,6 +38,10 @@ h2 {
 
 .box.dashed {
   border-style: dashed;
+}
+
+.box.long {
+  width: 397px;
 }
 
 input[type=number] {
