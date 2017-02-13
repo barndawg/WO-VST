@@ -1,0 +1,109 @@
+<html>
+<head>
+  <meta charset='utf-8'>
+  <link rel='stylesheet' type='text/css' href='stylesheet.css'>
+  <title>WØ-VST</title>
+</head>
+<body>
+  <div class='osc-box'>
+    <h1>WØ-VST</h1>
+  </div>
+
+  <div class='osc-box'>
+    <h1>VER 0.4A</h1>
+  </div>
+
+  <div class='osc-box'>
+    <h1>COPT 2017</h1>
+  </div><br>
+
+  <div class='osc-box'>
+    <h2>OSCILLATOR 1</h2>
+
+    Wave (on), freq offset<br>
+    <select id='type1'>
+      <option value='sawtooth'>Saw</option>
+      <option value='triangle'>Tri</option>
+      <option value='square'>Square</option>
+      <option value='sine'>Sine</option>
+    </select>
+
+    <input checked type='checkbox' id='osc1'/>
+    <input type='number' id='freq1' value='0' /><br>
+
+    Unison offset (on)<br>
+    <input type='number' min='0.5' max='10' step='0.5' id='ofs1' value='2' />
+    <input type='checkbox' id='uni1'/><br>
+  </div>
+
+  <div class='osc-box'>
+    <h2>OSCILLATOR 2</h2>
+
+    Wave (on), freq offset<br>
+    <select id='type2'>
+      <option value='sawtooth'>Saw</option>
+      <option value='triangle'>Tri</option>
+      <option value='square'>Square</option>
+      <option value='sine'>Sine</option>
+    </select>
+    <input checked type='checkbox' id='osc2'/>
+    <input type='number' id='freq2' value='110' /><br>
+
+    Unison offset (on)<br>
+    <input type='number' min='0.5' max='10' step='0.5' id='ofs2' value='2' />
+    <input type='checkbox' id='uni2'/><br>
+  </div>
+
+  <div class='osc-box'>
+    <h2>OSCILLATOR 3</h2>
+
+    Wave (on), freq offset<br>
+    <select id='type3'>
+      <option value='sawtooth'>Saw</option>
+      <option value='triangle'>Tri</option>
+      <option value='square'>Square</option>
+      <option value='sine'>Sine</option>
+    </select>
+    <input checked type='checkbox' id='osc3'/>
+    <input type='number' id='freq3' value='220' /><br>
+
+    Unison offset (on)<br>
+    <input type='number' min='0.5' max='10' step='0.5' id='ofs3' value='2' />
+    <input type='checkbox' id='uni3'/><br>
+  </div><br>
+
+  <div class='osc-box'>
+    <h2>LOWPASS FILT</h2>
+    Cutoff frequency
+    <input type='number' id='lpfCut' value='440' />
+  </div>
+
+  <div class='osc-box'>
+    <h2>HIGHPASS FILT</h2>
+    Cutoff frequency
+    <input type='number' id='hpfCut' value='880' />
+  </div>
+
+  <div class='osc-box'>
+    <h2>FILTER SELECT</h2>
+    Filters active<br>
+    <select id='filters'>
+      <option value='none'>None</option>
+      <option value='lpf'>LPF</option>
+      <option value='hpf'>HPF</option>
+      <option value='both'>Both</option>
+    </select>
+  </div><br>
+
+  <div class='osc-box'>
+    <h2>PLAY + STOP</h2>
+    Initial freq (play, stop)
+    <input type='number' id='freq' value='440' />
+
+    <button onclick='play()'>▶</button>
+    <button onclick='stop()'>■</button>
+  </div>
+
+  <script type='text/javascript' src='WO.js'></script>
+</body>
+</html>

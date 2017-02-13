@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans|Rubik');
+
+body {
+  background-color: #000000;
+  color: #FFFFFF;
+  font-family: 'Open Sans', sans-serif;
+  user-select: none;
+}
+
+h1 {
+  font-family: 'Rubik', sans-serif;
+  font-size: 55px;
+  margin: 0px;
+  text-align: left;
+}
+
+h2 {
+  font-family: 'Rubik', sans-serif;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.osc-box {
+  text-align: center;
+  border: 5px solid #FFFFFF;
+  border-radius: 4px;
+  display: inline-block;
+  padding: 5px;
+  margin: 10px;
+  width: 176.13px;
+}
+
+input[type=number] {
+  width: 60px;
+  height: 18px;
+  border: 1.5px solid #FFFFFF;
+  border-radius: 4px;
+  background-color: #000000;
+  color: #FFFFFF;
+}
+
+button {
+  width: 30px;
+  height: 18px;
+  border: 1.5px solid #FFFFFF;
+  border-radius: 4px;
+  background-color: #FFFFFF;
+}
+
+select {
+  width: 60px;
+  border: 1px solid #FFFFFF;
+  background: transparent;
+  color: #FFFFFF;
+}

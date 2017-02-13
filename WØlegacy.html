@@ -1,0 +1,63 @@
+<html>
+<head>
+  <meta charset='utf-8'>
+  <link rel='stylesheet' type='text/css' href='stylesheet.css'>
+  <title>WØ-VST</title>
+</head>
+<body>
+  <h1>~ WØ-VST v0.3a ~</h1>
+  <h2>(C) WATSØN 2017</h2>
+  <div class='left'>
+    OSCILLATOR 1<br>
+    <select id='type1'>
+      <option value='sawtooth'>Saw</option>
+      <option value='triangle'>Triangle</option>
+      <option value='square'>Square</option>
+      <option value='sine'>Sine</option>
+    </select>
+    <input checked type='checkbox' id='osc1'/>
+    <input checked type='checkbox' id='uni1'/><br>
+
+    <select id='type2'>
+      <option value='sawtooth'>Saw</option>
+      <option value='triangle'>Triangle</option>
+      <option value='square'>Square</option>
+      <option value='sine'>Sine</option>
+    </select>
+    <input checked type='checkbox' id='osc2'/>
+    <input checked type='checkbox' id='uni2'/><br>
+
+    <select id='type3'>
+      <option value='sawtooth'>Saw</option>
+      <option value='triangle'>Triangle</option>
+      <option value='square'>Square</option>
+      <option value='sine'>Sine</option>
+    </select>
+    <input checked type='checkbox' id='osc3'/>
+    <input checked type='checkbox' id='uni3'/><br>
+  </div><br>
+
+  <div>
+    FREQUENCY OFFSET (hZ)<br>
+    <input type='text' id='freq1' value='0' /><br>
+    <input type='text' id='freq2' value='110' /><br>
+    <input type='text' id='freq3' value='220' /><br>
+  </div><br>
+
+  <div>
+    UNISON OFFSET:<br>
+    <input type='range' min='0.5' max='10' id='ofs1' value='2' /><br>
+    <input type='range' min='0.5' max='10' id='ofs2' value='2' /><br>
+    <input type='range' min='0.5' max='10' id='ofs3' value='2' /><br>
+  </div><br>
+
+  <div>
+    INITIAL FREQUENCY:<br>
+    <input type='text' id='freq' value='440' />
+  </div><br>
+
+  <button onclick='playButtonHandler()'>Play</button>
+  <button onclick='stopButtonHandler()'>Stop</button>
+  <script type='text/javascript' src='WØ.js'></script>
+</body>
+</html>
