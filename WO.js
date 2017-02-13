@@ -1,5 +1,5 @@
 // TO-DO LIST
-// Add modulation textbox inputs in their own panel (HTML) []
+// Add modulation textbox inputs in their own panel (HTML) [-]
 // Add basic code for modulation from http://tinyurl.com/hpgvg77 (JS) []
 // Add way of sequencing sounds (JS) and make input field for code (HTML) []
 
@@ -10,9 +10,7 @@ function osc(freq, type){
   oscs[i].type = type; // Set oscillator's waveform
   oscs[i].frequency.value = freq; // Set oscillator's frequency
 
-  // I need a switching function for the signal path here
-
-  oscs[i].connect(volume);
+  oscs[i].connect(filts[hpf]);
 
   oscs[i].start(); // Start oscillator
 }
@@ -30,14 +28,14 @@ function play(){
       var uni = document.getElementById('uni' + num).checked; // Get value of unison
       var offset = document.getElementById('ofs' + num).value; // Get value of unison offset
 
-      lpf.frequency.value = document.getElementById('lpfCut').value; // Set cutoff for LPF
-      hpf.frequency.value = document.getElementById('hpfCut').value; // Set cutoff for HPF
+      filts[lpf].frequency.value = document.getElementById('lpfCut').value; // Set cutoff for LPF
+      filts[hpf].frequency.value = document.getElementById('hpfCut').value; // Set cutoff for HPF
 
       play = parseFloat(play) + parseFloat(freq); // Add freq offset to initial freq
 
       if (uni){
-        // osc(play - offset, type); // Start lower unison oscillator
-        // osc(parseFloat(play) + parseFloat(offset), type); // Start higher unison oscillator
+        osc(play - offset, type); // Start lower unison oscillator
+        osc(parseFloat(play) + parseFloat(offset), type); // Start higher unison oscillator
       }
 
       osc(play, type); // Start main oscillator
@@ -52,7 +50,17 @@ function stop(){
     oscs = []; // Delete all oscillators in array
 }
 
+function createFilter(type, cutoff){
+  var filter = context.createBiquadFilter(); // Create biquad filter
+  filter.type = type; // Set filter type
+  filter.frequency.value = cutoff; // Set cutoff frequency
+  filts.push(filter);
+  return filts.length;
+}
+
 var oscs = []; // Create oscillator array
+var filts = []; // Create filter array
+var lfos = []; // Create LFO array
 
 var context = new AudioContext(); // Create audio context
 
@@ -60,12 +68,10 @@ var volume = context.createGain(); // Create gain node for volume control
 volume.connect(context.destination); // Connect gain node to audio output
 volume.gain.value = 0.5; // Set volume to 0.2;
 
-var hpf = context.createBiquadFilter(); // Create highpass filter
-hpf.connect(volume); // Connect HPF to volume control (out)
-hpf.type = 'highpass'; // Set filter type to highpass
-hpf.frequency.value = 880; // Set cutoff frequency to 660 HZ
+var hpf = createFilter('highpass', 660); // Create highpass filter
+hpf = hpf - 1; // Get actual array item #
+filts[hpf].connect(volume); // Connect HPF to volume control (out)
 
-var lpf = context.createBiquadFilter(); // Create lowpass filter
-lpf.connect(hpf); // Connect LPF to HPF (out)
-lpf.type = 'lowpass'; // Set filter type to lowpass
-lpf.frequency.value = 880; // Set cutoff frequency to 440 HZ
+var lpf = createFilter('lowpass', 440); // Create lowpass filter
+lpf = lpf - 1; // Get actual array item #
+filts[lpf].connect(filts[hpf]); // Connect LPF to HPF (out)
