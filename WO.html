@@ -5,19 +5,19 @@
   <title>WØ-VST</title>
 </head>
 <body>
-  <div class='osc-box'>
+  <div class='box'>
     <h1>WØ-VST</h1>
   </div>
 
-  <div class='osc-box'>
+  <div class='box'>
     <h1>VER 0.4A</h1>
   </div>
 
-  <div class='osc-box'>
+  <div class='box'>
     <h1>COPT 2017</h1>
   </div><br>
 
-  <div class='osc-box'>
+  <div class='box'>
     <h2>OSCILLATOR 1</h2>
 
     Wave (on), freq offset<br>
@@ -36,7 +36,7 @@
     <input type='checkbox' id='uni1'/><br>
   </div>
 
-  <div class='osc-box'>
+  <div class='box'>
     <h2>OSCILLATOR 2</h2>
 
     Wave (on), freq offset<br>
@@ -54,7 +54,7 @@
     <input type='checkbox' id='uni2'/><br>
   </div>
 
-  <div class='osc-box'>
+  <div class='box'>
     <h2>OSCILLATOR 3</h2>
 
     Wave (on), freq offset<br>
@@ -72,19 +72,19 @@
     <input type='checkbox' id='uni3'/><br>
   </div><br>
 
-  <div class='osc-box'>
+  <div class='box'>
     <h2>LOWPASS FILT</h2>
     Cutoff frequency
     <input type='number' id='lpfCut' value='440' />
   </div>
 
-  <div class='osc-box'>
+  <div class='box'>
     <h2>HIGHPASS FILT</h2>
     Cutoff frequency
     <input type='number' id='hpfCut' value='880' />
   </div>
 
-  <div class='osc-box'>
+  <div class='box dashed'>
     <h2>FILTER SELECT</h2>
     Filters active<br>
     <select id='filters'>
@@ -95,7 +95,19 @@
     </select>
   </div><br>
 
-  <div class='osc-box'>
+  <div class='box dashed'>
+    <h2>MODULATION</h2>
+    Mod amount (on)<br>
+    <input type='number' id='mod' value='50' />
+    <input checked type='checkbox' id='modOn'/>
+  </div>
+
+  <div class='box dashed'>
+    <h2>EXTENSIONS</h2>
+    WØ will be able to support extensions.
+  </div>
+
+  <div class='box'>
     <h2>PLAY + STOP</h2>
     Initial freq (play, stop)
     <input type='number' id='freq' value='440' />
