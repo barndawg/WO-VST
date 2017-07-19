@@ -45,6 +45,8 @@ h3 {
 }
 
 input[type=number] {
+  box-sizing: border-box;
+  padding-left: 4px;
   width: 60px;
   height: 18px;
   border: 1.5px solid #FFFFFF;
@@ -54,8 +56,10 @@ input[type=number] {
 }
 
 button {
+  vertical-align: middle;
   width: 30px;
   height: 18px;
+  line-height: 15px;
   border: 1.5px solid #FFFFFF;
   border-radius: 4px;
   background-color: #FFFFFF;
@@ -63,7 +67,13 @@ button {
 
 select {
   width: 60px;
-  border: 1px solid #FFFFFF;
+  height: 18px;
+  border: 1.5px solid #FFFFFF;
+  border-radius: 4px;
   background: transparent;
   color: #FFFFFF;
+}
+
+option {
+  color: #000000;
 }

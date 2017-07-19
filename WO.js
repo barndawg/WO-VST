@@ -1,4 +1,6 @@
-function osc(freq, type){
+/*jshint esversion: 6*/
+
+function osc(type, freq){
   console.log('[OSC] Creating oscillator with waveform ' + type + ' and frequency ' + freq + 'hZ...');
   oscs.push(context.createOscillator()); // Create oscilllator
   var i = oscs.length - 1; // Get oscillator's item number in array
@@ -6,8 +8,8 @@ function osc(freq, type){
   oscs[i].type = type; // Set oscillator's waveform
   oscs[i].frequency.value = freq; // Set oscillator's frequency
 
-  flow(i); // Set signal path for oscillator
   oscs[i].start(); // Start oscillator
+  return i;
 }
 
 function play(){
@@ -34,14 +36,14 @@ function play(){
 
       if (uni){
         console.log('[PLAY] Unison is on. Starting unison oscillators...');
-        osc(play - offset, type); // Start lower unison oscillator
-        osc(parseFloat(play) + parseFloat(offset), type); // Start higher unison oscillator
+        flow( osc(type, play - offset) ); // Start & flow lower unison oscillator
+        flow( osc(type, parseFloat(play) + parseFloat(offset)) ); // Start & flow higher unison oscillator
       } else {
         console.log('[PLAY] Unison is off for oscillator ' + num + '.');
       }
 
       console.log('[PLAY] Starting main oscillator ' + num + '...');
-      osc(play, type); // Start main oscillator
+      flow( osc(type, play) ); // Start main oscillator
     } else {
       console.log('[PLAY] Oscillator ' + num + ' is off.');
     }
@@ -82,7 +84,7 @@ function flow(i){
 }
 
 function createFilter(type, cutoff){
-  console.log('[CREATEFILTER] Creating biquad filter with type ' + type + ' and cutoff ' + cutoff + '...');
+  console.log('[CREATEFILTER] Creating biquad filter with type ' + type + ' and cutoff ' + cutoff + 'hZ...');
   var filter = context.createBiquadFilter(); // Create biquad filter
   filter.type = type; // Set filter type
   filter.frequency.value = cutoff; // Set cutoff frequency
@@ -92,31 +94,22 @@ function createFilter(type, cutoff){
   return num; // Return filter position
 }
 
-function createLFO(type, amp){
-  console.log('[CREATELFO] Creating LFO with type ' + type + ' and amplitude ' + amp + '...');
-  var lfo = context.createOscillator(); // Create low frequency oscillator
-  var lfoAmp = context.createGain(); // Create gain node for amplitude control
-  lfo.type = type; // Set LFO type
-  lfoAmp.gain.value = amp; // Set LFO amplitude
-  lfo.connect(lfoAmp); // Connect LFO amplitude to LFO
-  var toPush = {
-    lfo: lfo,
-    amp: lfoAmp
-  }; // Create object with LFO and amplitude
-  lfos.push(toPush); // Push object to array
-  var num = lfos.length - 1; // Get LFO position
-  console.log('[CREATELFO] LFO position in array is ' + num.toString() + '.');
-  return num; // Return LFO position
-}
+var ver = '0.5a';
+var log = true;
 
-var ver = '0.4a';
+console.out = console.log.bind(console); // Make console.out = normal console.log
+console.log = function(text){ // Make console.log only output when log is true
+  if (log){
+    this.out(text);
+  }
+};
 
+document.getElementById('version').innerHTML = 'VER ' + ver;
 console.log('[INIT] Welcome to WØ-VST v' + ver + '!');
 
 console.log('[INIT] Creating oscillator, filter, and lfo arrays...');
 var oscs = []; // Create oscillator array
 var filts = []; // Create filter array
-var lfos = []; // Create LFO array
 
 console.log('[INIT] Creating audio context...');
 var context = new AudioContext(); // Create audio context
@@ -128,3 +121,6 @@ volume.gain.value = 0.5; // Set volume to 0.5;
 console.log('[INIT] Creating biquad filters...');
 var hpf = createFilter('highpass', 660); // Create highpass filter
 var lpf = createFilter('lowpass', 440); // Create lowpass filter
+
+console.log('[INIT] Creating modulation LFO...');
+var modLfo = osc('sawtooth', 440);
