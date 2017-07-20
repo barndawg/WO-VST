@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css?family=Open+Sans|Rubik');
+@import url('https://fonts.googleapis.com/css?family=Rubik|Roboto+Mono');
 
 body {
   background-color: #000000;
   color: #FFFFFF;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'Roboto Mono', sans-serif;
   user-select: none;
 }
 
@@ -45,13 +45,29 @@ h3 {
 }
 
 input[type=number] {
+  font-family: 'Roboto Mono', sans-serif;
   box-sizing: border-box;
   padding-left: 4px;
   width: 60px;
   height: 18px;
   border: 1.5px solid #FFFFFF;
   border-radius: 4px;
-  background-color: #000000;
+  background: transparent;
+  color: #FFFFFF;
+}
+
+input[type=number].small {
+  width: 45px;
+}
+
+input[type=text] {
+  font-family: 'Roboto Mono', sans-serif;
+  box-sizing: border-box;
+  padding-left: 4px;
+  width: 140px;
+  border: 1.5px solid #FFFFFF;
+  border-radius: 4px;
+  background: transparent;
   color: #FFFFFF;
 }
 
@@ -63,9 +79,11 @@ button {
   border: 1.5px solid #FFFFFF;
   border-radius: 4px;
   background-color: #FFFFFF;
+  color: #383838;
 }
 
 select {
+  font-family: 'Roboto Mono', sans-serif;
   width: 60px;
   height: 18px;
   border: 1.5px solid #FFFFFF;

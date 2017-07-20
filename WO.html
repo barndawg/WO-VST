@@ -18,9 +18,9 @@
   </div><br>
 
   <div class='box'>
-    <h2>OSCILLATOR 1</h2>
+    <h2>VCO1</h2>
 
-    Wave (on), freq offset<br>
+    Waveform, offset<br>
     <select id='type1'>
       <option value='sawtooth'>Saw</option>
       <option value='triangle'>Tri</option>
@@ -31,15 +31,15 @@
     <input checked type='checkbox' id='osc1'/>
     <input type='number' id='freq1' value='0' /><br>
 
-    Unison offset (on)<br>
-    <input type='number' min='0.5' max='10' step='0.5' id='ofs1' value='2' />
+    Unison offset<br>
+    <input type='number' min=0.5 max=10 step=0.5 id='ofs1' value='2' />
     <input type='checkbox' id='uni1'/><br>
   </div>
 
   <div class='box'>
-    <h2>OSCILLATOR 2</h2>
+    <h2>VCO2</h2>
 
-    Wave (on), freq offset<br>
+    Waveform, offset<br>
     <select id='type2'>
       <option value='sawtooth'>Saw</option>
       <option value='triangle'>Tri</option>
@@ -49,15 +49,15 @@
     <input checked type='checkbox' id='osc2'/>
     <input type='number' id='freq2' value='110' /><br>
 
-    Unison offset (on)<br>
-    <input type='number' min='0.5' max='10' step='0.5' id='ofs2' value='2' />
+    Unison offset<br>
+    <input type='number' min=0.5 max=10 step=0.5 id='ofs2' value='2' />
     <input type='checkbox' id='uni2'/><br>
   </div>
 
   <div class='box'>
-    <h2>OSCILLATOR 3</h2>
+    <h2>VCO3</h2>
 
-    Wave (on), freq offset<br>
+    Waveform, offset<br>
     <select id='type3'>
       <option value='sawtooth'>Saw</option>
       <option value='triangle'>Tri</option>
@@ -67,25 +67,25 @@
     <input checked type='checkbox' id='osc3'/>
     <input type='number' id='freq3' value='220' /><br>
 
-    Unison offset (on)<br>
-    <input type='number' min='0.5' max='10' step='0.5' id='ofs3' value='2' />
+    Unison offset<br>
+    <input type='number' min=0.5 max=10 step=0.5 id='ofs3' value='2' />
     <input type='checkbox' id='uni3'/><br>
   </div><br>
 
   <div class='box'>
-    <h2>LOWPASS FILT</h2>
+    <h2>VCLPF</h2>
     Cutoff frequency
     <input type='number' id='lpfCut' value='440' />
   </div>
 
   <div class='box'>
-    <h2>HIGHPASS FILT</h2>
+    <h2>VCHPF</h2>
     Cutoff frequency
     <input type='number' id='hpfCut' value='880' />
   </div>
 
   <div class='box'>
-    <h2>FILTER SELECT</h2>
+    <h2>FILTERS</h2>
     Filters active<br>
     <select id='filters'>
       <option value='none'>None</option>
@@ -95,19 +95,35 @@
     </select>
   </div><br>
 
-  <div class='box dashed'>
+  <div class='box dashed mono'>
     <h2>ADSR</h2>
-    Coming soon!
+    AD <input type='number' id='att' class='small' min=0 max=100 step=5 id='attack' value=50 />
+    <input type='number' id='dec' class='small' min=0 max=100 step=5 id='decay' value=200 /><br>
+    SR <input type='number' id='sust' class='small' min=0 max=100 step=5 id='sustain' value=75 />
+    <input type='number' id='rel' class='small' min=0 max=100 step=5 id='release' value=50 />
   </div>
 
   <div class='box dashed'>
     <h2>LFO</h2>
-    Coming soon!
+    Type, connection<br>
+    <select id='lfo1'>
+      <option value='sawtooth'>Saw</option>
+      <option value='triangle'>Tri</option>
+      <option value='square'>Square</option>
+      <option value='sine'>Sine</option>
+    </select>
+    <select id='lfo1'>
+      <option value='frequency'>Frequency</option>
+      <option value='detune'>Detune</option>
+      <option value='unison'>Unison</option>
+    </select>
+    <input type='checkbox' id='osc3'/>
   </div>
 
   <div class='box dashed'>
     <h2>SEQUENCER</h2>
-    Coming soon!
+    Sequence code
+    <input type='text' />
   </div><br>
 
   <div class='box dashed long'>
@@ -118,11 +134,10 @@
 
   <div class='box'>
     <h2>PLAY + STOP</h2>
-    Initial freq (play, stop)
-    <input type='number' id='freq' value='440' />
-
+    Volume, ▶⬜<br>
+    <input type='number' class='small' id='vol' min=0 max=100 step=2 value=100 />
     <button onclick='play()'>▶</button>
-    <button onclick='stop()'>■</button>
+    <button onclick='stop()'>⬛</button><br>
   </div>
 
   <script type='text/javascript' src='WO.js'></script>
