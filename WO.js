@@ -1,51 +1,57 @@
 /*jshint esversion: 6*/
 
-function osc(type, freq){
+// TODO:
+// [ ] Fix individual volume control not working
+// [ ] Cleanly delete oscillators and volume envelopes when stop() is used
+// [ ] Add sequencer, ADSR, and LFOs
+
+function osc(type, freq, detune = 0, vol = 1){
   console.log('[OSC] Creating oscillator with waveform ' + type + ' and frequency ' + freq + 'hZ...');
   oscs.push(context.createOscillator()); // Create oscilllator
   var i = oscs.length - 1; // Get oscillator's item number in array
 
   oscs[i].type = type; // Set oscillator's waveform
   oscs[i].frequency.value = freq; // Set oscillator's frequency
+  oscs[i].detune.value = detune; // Set oscillator's detune
+
+  var oscVol = createVolumeEnvelope((Math.exp(vol.value / 100) - 1) / (Math.E - 1)); // Create volume envelope for oscillator
+  oscs[i].connect(envs[oscVol]); // Connect oscillator to volume envelope
 
   oscs[i].start(); // Start oscillator
-  return i;
+  return oscVol;
 }
 
-function play(){
+function play(freq = 440){
   console.log('[PLAY] Stopping existing oscillators...');
-  stop();
   for (var i = 0; i < 3; i++){
-    var num = i + 1; // Use same numbering system as HTML
-    console.log('[PLAY] Checking if oscillator ' + num + ' is on or off...');
-    var checked = document.getElementById('osc' + num).checked; // Get osc on or off
+    console.log('[PLAY] Checking if oscillator ' + i + ' is on or off...');
+    var checked = document.getElementById('osc' + i).checked; // Get osc on or off
 
     if (checked){
-      console.log('[PLAY] Oscillator ' + num + ' is on. Getting other inputs...');
-      var freq = 440; // Get initial frequency
-      var play = document.getElementById('freq' + num).value; // Get value of freq offset
-      var type = document.getElementById('type' + num).value; // Get value of waveform
-      var uni = document.getElementById('uni' + num).checked; // Get value of unison
-      var offset = document.getElementById('ofs' + num).value; // Get value of unison offset
+      console.log('[PLAY] Oscillator ' + i + ' is on. Getting other inputs...');
+      var detune = document.getElementById('freq' + i).value; // Get value of detune
+      console.log(detune);
+      var type = document.getElementById('type' + i).value; // Get value of waveform
+      var uni = document.getElementById('uni' + i).checked; // Get value of unison
+      var offset = document.getElementById('ofs' + i).value; // Get value of unison offset
+      var vol = document.getElementById('vol' + i).value / 100; // Get value of volume
 
-      console.log('[PLAY] Setting cutoff frequencies for filters...'); // Move this code to the switchboard!
+      console.log('[PLAY] Setting cutoff frequencies for filters...');
       filts[lpf].frequency.value = document.getElementById('lpfCut').value; // Set cutoff for LPF
       filts[hpf].frequency.value = document.getElementById('hpfCut').value; // Set cutoff for HPF
 
-      play = parseFloat(play) + parseFloat(freq); // Add freq offset to initial freq
-
       if (uni){
         console.log('[PLAY] Unison is on. Starting unison oscillators...');
-        flow( osc(type, play - offset) ); // Start & flow lower unison oscillator
-        flow( osc(type, parseFloat(play) + parseFloat(offset)) ); // Start & flow higher unison oscillator
+        flow( osc(type, freq, detune - offset, vol) ); // Start & flow lower unison oscillator
+        flow( osc(type, freq, detune + offset, vol) ); // Start & flow higher unison oscillator
       } else {
-        console.log('[PLAY] Unison is off for oscillator ' + num + '.');
+        console.log('[PLAY] Unison is off for oscillator ' + i + '.');
       }
 
-      console.log('[PLAY] Starting main oscillator ' + num + '...');
-      flow( osc(type, play) ); // Start main oscillator
+      console.log('[PLAY] Starting main oscillator ' + i + '...');
+      flow( osc(type, freq, detune, vol) ); // Start main oscillator
     } else {
-      console.log('[PLAY] Oscillator ' + num + ' is off.');
+      console.log('[PLAY] Oscillator ' + i + ' is off.');
     }
   }
 }
@@ -59,24 +65,25 @@ function stop(){
   oscs = []; // Delete all oscillators in array
 }
 
-function flow(i){
-  var path = document.getElementById('filters').value; // Get value of filter select
+function flow(i, detune = 0){
+  var lpfOn = document.getElementById('lpfOn').checked;
+  var hpfOn = document.getElementById('hpfOn').checked;
   var adsr = createVolumeEnvelope();
 
-  if (path == 'none'){
+  if (!lpfOn && !hpfOn){
     console.log('[FLOW] Signal path = osc -> vol -> out. Setting...');
-    oscs[i].connect(volume); // Connect oscillator to volume (out)
-  } else if (path == 'hpf'){
+    envs[i].connect(volume); // Connect oscillator to volume (out)
+  } else if (!lpfOn && hpfOn){
     console.log('[FLOW] Signal path = hpf -> vol -> out. Setting...');
-    oscs[i].connect(filts[0]); // Connect oscillator to HPF (out)
+    envs[i].connect(filts[0]); // Connect oscillator to HPF (out)
     filts[0].connect(volume); // Connect HPF to volume (out)
-  } else if (path == 'lpf'){
+  } else if (lpfOn && !hpfOn){
     console.log('[FLOW] Signal path = lpf -> vol -> out. Setting...');
-    oscs[i].connect(filts[1]); // Connect oscillator to LPF (out)
+    envs[i].connect(filts[1]); // Connect oscillator to LPF (out)
     filts[1].connect(volume); // Connect LPF to volume (out)
-  } else if (path == 'both'){
+  } else if (lpfOn && hpfOn){
     console.log('[FLOW] Signal path = hpf -> lpf -> vol -> out. Setting...');
-    oscs[i].connect(filts[0]); // Connect oscillator to HPF (out)
+    envs[i].connect(filts[0]); // Connect oscillator to HPF (out)
     filts[0].connect(filts[1]); // Connect HPF to LPF (out)
     filts[1].connect(volume); // Connect LPF to volume (out)
   }
@@ -103,7 +110,7 @@ function createFilter(type, cutoff){
 }
 
 function createVolumeEnvelope(gain = 1){
-  console.log('[CREATEVOLUMEENVELOPE] Creating volume envelope with gain' + gain + '...');
+  console.log('[CREATEVOLUMEENVELOPE] Creating volume envelope with gain ' + gain + '...');
   var envelope = context.createGain(); // Create gain node for volume control
   envelope.gain.value = 1; // Set volume to 1;
   envs.push(envelope); // Push envelope to array
@@ -174,8 +181,20 @@ function noteToFrequency(note = 'C5'){
   return freq;
 }
 
-var ver = '0.5c';
-var log = true;
+function changeStylesheet(){
+  var ssLink = document.getElementById('css');
+  if (white){
+    ssLink.href = 'stylesheet.css';
+    white = false;
+  } else {
+    ssLink.href = 'stylesheet_white.css';
+    white = true;
+  }
+}
+
+var ver = '0.5c',
+  log = true,
+  white = false;
 
 console.out = console.log.bind(console); // Make console.out = normal console.log
 console.log = function(text){ // Make console.log only output when log is true
@@ -210,6 +229,3 @@ volumeControl.addEventListener('input', function(){
 console.log('[INIT] Creating biquad filters...');
 var hpf = createFilter('highpass', 660); // Create highpass filter
 var lpf = createFilter('lowpass', 440); // Create lowpass filter
-
-console.log('[INIT] Creating modulation LFO...');
-var modLfo = osc('sawtooth', 440);
