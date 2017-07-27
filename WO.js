@@ -1,231 +1,215 @@
 /*jshint esversion: 6*/
 
 // TODO:
-// [ ] Fix individual volume control not working
+// [-] Fix individual volume control not working
 // [ ] Cleanly delete oscillators and volume envelopes when stop() is used
 // [ ] Add sequencer, ADSR, and LFOs
 
-function osc(type, freq, detune = 0, vol = 1){
-  console.log('[OSC] Creating oscillator with waveform ' + type + ' and frequency ' + freq + 'hZ...');
-  oscs.push(context.createOscillator()); // Create oscilllator
-  var i = oscs.length - 1; // Get oscillator's item number in array
-
-  oscs[i].type = type; // Set oscillator's waveform
-  oscs[i].frequency.value = freq; // Set oscillator's frequency
-  oscs[i].detune.value = detune; // Set oscillator's detune
-
-  var oscVol = createVolumeEnvelope((Math.exp(vol.value / 100) - 1) / (Math.E - 1)); // Create volume envelope for oscillator
-  oscs[i].connect(envs[oscVol]); // Connect oscillator to volume envelope
-
-  oscs[i].start(); // Start oscillator
-  return oscVol;
-}
-
-function play(freq = 440){
-  console.log('[PLAY] Stopping existing oscillators...');
-  for (var i = 0; i < 3; i++){
-    console.log('[PLAY] Checking if oscillator ' + i + ' is on or off...');
-    var checked = document.getElementById('osc' + i).checked; // Get osc on or off
-
-    if (checked){
-      console.log('[PLAY] Oscillator ' + i + ' is on. Getting other inputs...');
-      var detune = document.getElementById('freq' + i).value; // Get value of detune
-      console.log(detune);
-      var type = document.getElementById('type' + i).value; // Get value of waveform
-      var uni = document.getElementById('uni' + i).checked; // Get value of unison
-      var offset = document.getElementById('ofs' + i).value; // Get value of unison offset
-      var vol = document.getElementById('vol' + i).value / 100; // Get value of volume
-
-      console.log('[PLAY] Setting cutoff frequencies for filters...');
-      filts[lpf].frequency.value = document.getElementById('lpfCut').value; // Set cutoff for LPF
-      filts[hpf].frequency.value = document.getElementById('hpfCut').value; // Set cutoff for HPF
-
-      if (uni){
-        console.log('[PLAY] Unison is on. Starting unison oscillators...');
-        flow( osc(type, freq, detune - offset, vol) ); // Start & flow lower unison oscillator
-        flow( osc(type, freq, detune + offset, vol) ); // Start & flow higher unison oscillator
+var WO = {
+  synth: {
+    createOsc: function(freq = 440, type = 'sawtooth'){
+      var i = WO.data.oscs.push( WO.context.createOscillator() - 1 ); // Create oscillator, add it to data.oscs and set basic attributes
+      WO.data.oscs[i].frequency.value = freq;
+      WO.data.oscs[i].type = type;
+      return i;
+    },
+    startOsc: function(i){
+      WO.data.oscs[i].start();
+    },
+    stopOsc: function(i){
+      if (i === 'all'){
+        for (var i2 = 0; i2 in oscs; i2++){
+          WO.data.oscs[i2].stop();
+          WO.data.oscs.splice(i2, 1);
+        }
       } else {
-        console.log('[PLAY] Unison is off for oscillator ' + i + '.');
+        WO.data.oscs[i].stop();
+        WO.data.oscs.splice(i, 1);
+      }
+    },
+    createFilt: function(cut = 440, type = 'lowpass'){
+      var i = WO.data.oscs.push( WO.context.createBiquadFilter() ); // Create biquad filter, add it to data.filts and set basic attributes
+      WO.data.filts[i].frequency.value = cut;
+      WO.data.filts[i].type = type;
+      return i;
+    },
+    setFilt(i = 0, cut = 440){
+      WO.data.filts[i].frequency.value = cut;
+    },
+    createEnvelope: function(gain = 1){
+      var i = WO.data.envs.push( WO.context.createGain() ); // Create gain node, add it to data.envs and set gain value
+      WO.data.envs[i].gain.value = gain;
+      return i;
+    }
+  },
+
+  play: {
+    freq: function(freq = 440, type = 'sawtooth'){
+      var i = WO.synth.createOsc(freq, type);
+      WO.synth.startOsc(i);
+      WO.play.path(i);
+      return i;
+    },
+    note: function(note = 'C5', type = 'sawtooth'){
+      playFreq( WO.util.noteToFreq(note), type );
+    },
+    path: function(i, path){
+      WO.data.oscs[i].connect(path[0]); // Connect oscillator to determined signal path
+      for (var i2 = 0; i2 + 1 in path; i2++){
+        path[i2].connect(path[i2 + 1]);
+      }
+    }
+  },
+
+  util: {
+    noteToFreq: function(){
+      var notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // List of all notes in 1 octave (enharmonics not included)
+        noteName, noteOct, // For if statements later
+        octDiff, singleOctSteps, steps, // For step calculations
+        root = Math.pow(2, 1/12); // 12th root of 2 for conversion
+
+      // Processes the note input into a note name and an octave. If it is passed an incorrect value it outputs C5.
+      if (!isNaN(parseInt(note.substring(1)))){
+        noteName = note.charAt(0); // Normal note (2nd character+ is octave)
+      } else if (note.charAt(1) === '#' || note.charAt(1) === 'b') {
+        noteName = note.substring(0, 2); // Note with accidental (3rd character+ is octave)
+      } else {
+        noteName = 'C'; // Not a valid note
       }
 
-      console.log('[PLAY] Starting main oscillator ' + i + '...');
-      flow( osc(type, freq, detune, vol) ); // Start main oscillator
-    } else {
-      console.log('[PLAY] Oscillator ' + i + ' is off.');
+      if (noteName.charAt(1) === 'b'){
+        noteName = notes[notes.indexOf(noteName.charAt(0)) - 1]; // Deal with flats here
+      }
+
+      if (!notes.includes(noteName)){
+        noteName = 'C'; // Not a valid note
+      }
+
+      if (noteName.length === 1){
+        noteOct = parseInt(note.substring(1)); // Normal note
+      } else {
+        noteOct = parseInt(note.substring(2)); // Note with accidental
+      }
+
+      if (isNaN(noteOct)){
+        noteOct = 5; // Not a valid octave
+      }
+
+      // Figures out the number of semitones between it and A4
+      // +-12st for octave difference
+      octDiff = noteOct - 4; // + if octave is greater, - if it is less
+      singleOctSteps = notes.indexOf(noteName.charAt(0)) - notes.indexOf('A'); // Gets steps in 1 oct from A, not counting accidentals
+
+      if (noteName.charAt(1) === '#'){
+        singleOctSteps = singleOctSteps + 1; // Add one step for sharp
+      }
+
+      if (octDiff < 0){
+        steps = singleOctSteps + 12 * (octDiff); // Step difference with supplemental octaves
+      } else if (octDiff > 0) {
+        steps = singleOctSteps + 12 * (octDiff); // Step difference with positive octaves
+      } else {
+        steps = singleOctSteps;
+      }
+      console.log(steps);
+
+      console.log(isNaN(steps));
+
+      var freq = 440 * Math.pow(root, steps);
+      return freq;
     }
-  }
-}
+  },
 
-function stop(){
-  console.log('[STOP] Stopping oscillators...');
-  for (var i = 0; i in oscs; i++){
-    oscs[i].stop(); // Stop all oscillators in array
-  }
-  console.log('[STOP] Deleting oscillators...');
-  oscs = []; // Delete all oscillators in array
-}
+  init: function(){
+    WO.synth.createEnvelope(1);
+    WO.synth.createFilter('highpass', 660);
+    WO.synth.createFilter('lowpass', 440);
+    return true;
+  },
 
-function flow(i, detune = 0){
-  var lpfOn = document.getElementById('lpfOn').checked;
-  var hpfOn = document.getElementById('hpfOn').checked;
-  var adsr = createVolumeEnvelope();
+  data: {
+    oscs: [],
+    filts: [],
+    envs: []
+  },
 
-  if (!lpfOn && !hpfOn){
-    console.log('[FLOW] Signal path = osc -> vol -> out. Setting...');
-    envs[i].connect(volume); // Connect oscillator to volume (out)
-  } else if (!lpfOn && hpfOn){
-    console.log('[FLOW] Signal path = hpf -> vol -> out. Setting...');
-    envs[i].connect(filts[0]); // Connect oscillator to HPF (out)
-    filts[0].connect(volume); // Connect HPF to volume (out)
-  } else if (lpfOn && !hpfOn){
-    console.log('[FLOW] Signal path = lpf -> vol -> out. Setting...');
-    envs[i].connect(filts[1]); // Connect oscillator to LPF (out)
-    filts[1].connect(volume); // Connect LPF to volume (out)
-  } else if (lpfOn && hpfOn){
-    console.log('[FLOW] Signal path = hpf -> lpf -> vol -> out. Setting...');
-    envs[i].connect(filts[0]); // Connect oscillator to HPF (out)
-    filts[0].connect(filts[1]); // Connect HPF to LPF (out)
-    filts[1].connect(volume); // Connect LPF to volume (out)
-  }
+  context: new AudioContext(),
+  version: '9a'
+};
 
-  volume.connect(context.destination); // Connect volume control to audio out (out)
-}
+var front = {
+  getValues: function(){
+    function allVals(tag, attr, max = 3){
+      var toReturn = [];
+      for (var i = 0; i < max; i++){
+        toReturn.push(document.getElementById(tag + i)[attr]);
+      }
+      return toReturn;
+    }
 
-function adsr(i){
-  var att = document.getElementById('att'),
-    dec = document.getElementById('dec'),
-    sust = document.getElementById('sust'),
-    rel = document.getElementById('rel');
-}
-
-function createFilter(type, cutoff){
-  console.log('[CREATEFILTER] Creating biquad filter with type ' + type + ' and cutoff ' + cutoff + 'hZ...');
-  var filter = context.createBiquadFilter(); // Create biquad filter
-  filter.type = type; // Set filter type
-  filter.frequency.value = cutoff; // Set cutoff frequency
-  filts.push(filter); // Push filter to array
-  var num = filts.length - 1; // Get filter position
-  console.log('[CREATEFILTER] Filter position in array is ' + num.toString() + '.');
-  return num; // Return filter position
-}
-
-function createVolumeEnvelope(gain = 1){
-  console.log('[CREATEVOLUMEENVELOPE] Creating volume envelope with gain ' + gain + '...');
-  var envelope = context.createGain(); // Create gain node for volume control
-  envelope.gain.value = 1; // Set volume to 1;
-  envs.push(envelope); // Push envelope to array
-  var num = envs.length - 1; // Get envelope position
-  console.log('[CREATEVOLUMEENVELOPE] Filter position in array is ' + num.toString() + '.');
-  return num; // Return envelope position
-}
-
-function noteToFrequency(note = 'C5'){
-  console.log('[NOTETOFREQUENCY] Converting note ' + note + ' to frequency in hZ...');
-  var notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], // List of all notes in 1 octave (enharmonics not included)
-    noteName, noteOct, // For if statements later
-    octDiff, singleOctSteps, steps, // For step calculations
-    root = Math.pow(2, 1/12); // 12th root of 2 for conversion
-
-  // Processes the note input into a note name and an octave. If it is passed an incorrect value it outputs C5.
-  if (!isNaN(parseInt(note.substring(1)))){
-    noteName = note.charAt(0); // Normal note (2nd character+ is octave)
-  } else if (note.charAt(1) === '#' || note.charAt(1) === 'b') {
-    noteName = note.substring(0, 2); // Note with accidental (3rd character+ is octave)
-  } else {
-    console.log('[NOTETOFREQUENCY] Invalid note name. Setting name to C.');
-    noteName = 'C'; // Not a valid note
-  }
-
-  if (noteName.charAt(1) === 'b'){
-    noteName = notes[notes.indexOf(noteName.charAt(0)) - 1]; // Deal with flats here
-  }
-
-  if (!notes.includes(noteName)){
-    console.log('[NOTETOFREQUENCY] Invalid note name. Setting name to C.');
-    noteName = 'C'; // Not a valid note
-  }
-
-  if (noteName.length === 1){
-    noteOct = parseInt(note.substring(1)); // Normal note
-  } else {
-    noteOct = parseInt(note.substring(2)); // Note with accidental
-  }
-
-  if (isNaN(noteOct)){
-    console.log('[NOTETOFREQUENCY] Invalid note octave. Setting octave to 5.');
-    noteOct = 5; // Not a valid octave
-  }
-
-  // Figures out the number of semitones between it and A4
-  // +-12st for octave difference
-  octDiff = noteOct - 4; // + if octave is greater, - if it is less
-  singleOctSteps = notes.indexOf(noteName.charAt(0)) - notes.indexOf('A'); // Gets steps in 1 oct from A, not counting accidentals
-
-  if (noteName.charAt(1) === '#'){
-    singleOctSteps = singleOctSteps + 1; // Add one step for sharp
-  }
-
-  if (octDiff < 0){
-    steps = singleOctSteps + 12 * (octDiff); // Step difference with supplemental octaves
-  } else if (octDiff > 0) {
-    steps = singleOctSteps + 12 * (octDiff); // Step difference with positive octaves
-  } else {
-    steps = singleOctSteps;
-  }
-  console.log(steps);
-
-  console.log(isNaN(steps));
-
-  var freq = 440 * Math.pow(root, steps);
-  console.log('[NOTETOFREQUENCY] Finished converting! Frequency for ' + note + ' is ' + freq + '.');
-  return freq;
-}
-
-function changeStylesheet(){
-  var ssLink = document.getElementById('css');
-  if (white){
-    ssLink.href = 'stylesheet.css';
-    white = false;
-  } else {
-    ssLink.href = 'stylesheet_white.css';
-    white = true;
-  }
-}
-
-var ver = '0.5c',
-  log = true,
-  white = false;
-
-console.out = console.log.bind(console); // Make console.out = normal console.log
-console.log = function(text){ // Make console.log only output when log is true
-  if (log){
-    this.out(text);
+    var v = {};
+    v.on = allVals('osc', 'checked');
+    v.gain = allVals('gain', 'value');
+    v.det = allVals('det', 'value');
+    v.type = allVals('type', 'value');
+    v.uniOn = allVals('uni', 'checked');
+    v.uniOfs = allVals('ofs', 'value');
+    v.filtOn = allVals('filt', 'checked', 2);
+    v.filtCut = allVals('cut', 'value', 2);
+    return v;
+  },
+  getPath: function(){
+    var v = getValues(),
+      lpf = v.filtOn[0],
+      hpf = v.filtOn[1],
+      path = [];
+    if (lpf){
+      path.push(WO.data.filts[0]);
+    }
+    if (hpf){
+      path.push(WO.data.filts[1]);
+    }
+    path.push(WO.data.envs[0]);
+    path.push(WO.context.destination);
+    return path;
+  },
+  play: function(){
+    var v = getValues();
+  },
+  changeStylesheet: function(){
+    var css = document.getElementById('css');
+    if (front.data.white){
+      css.href = 'stylesheet.css';
+      front.data.white = false;
+    } else {
+      css.href = 'stylesheet_white.css';
+      front.data.white = true;
+    }
+  },
+  init: function(){
+    // Run this after WO.init
+    document.getElementById('version').innerHTML = 'VER ' + front.data.version;
+    var volumeControl = document.getElementById('vol');
+    volumeControl.addEventListener('input', function(){
+      if (volumeControl.value > 100){
+        volumeControl.value = 100;
+      } else if (volumeControl.value < 0){
+        volumeControl.value = 0;
+      }
+      WO.data.envs[0].value = (Math.exp(volumeControl.value / 100) - 1) / (Math.E - 1);
+    });
+  },
+  data: {
+    white: false,
+    version: '0.7'
   }
 };
 
-document.getElementById('version').innerHTML = 'VER ' + ver;
-console.log('[INIT] Welcome to WØ-VST v' + ver + '!');
-
-console.log('[INIT] Creating oscillator, filter, and lfo arrays...');
-var oscs = []; // Create oscillator array
-var filts = []; // Create filter array
-var envs = []; // Create envelope array
-
-console.log('[INIT] Creating audio context...');
-var context = new AudioContext(); // Create audio context
-
-console.log('[INIT] Creating envelope for volume control...');
-var volume = envs[ createVolumeEnvelope(1) ]; // Create gain node for volume control
-var volumeControl = document.getElementById('vol'); // Get volume control element
-volumeControl.addEventListener('input', function(){
-  if (volumeControl.value > 100){
-    volumeControl.value = 100;
-  } else if (volumeControl.value < 0){
-    volumeControl.value = 0;
+var init = false;
+init = WO.init();
+var initInterval = setInterval(function(){
+  if (init){
+    front.init();
+    clearInterval(initInterval);
   }
-  volume.gain.value = (Math.exp(volumeControl.value / 100) - 1) / (Math.E - 1); // Logarithmic volume control
-});
-
-console.log('[INIT] Creating biquad filters...');
-var hpf = createFilter('highpass', 660); // Create highpass filter
-var lpf = createFilter('lowpass', 440); // Create lowpass filter
+}, 50);
